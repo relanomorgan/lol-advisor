@@ -67,28 +67,40 @@ function App() {
       minHeight: "100vh",
       background: pageBg,
       color: "#fff",
-      fontFamily: "sans-serif",
+      fontFamily: "'Segoe UI', sans-serif",
       padding: "2rem",
       transition: "background .5s ease"
     }}>
+
+      {/* Titre */}
       <h1 style={{
-        color: pageAccent, textAlign: "center",
-        marginBottom: "2rem", transition: "color .5s ease"
+        color: pageAccent,
+        textAlign: "center",
+        marginBottom: "2rem",
+        fontSize: "2.4rem",
+        letterSpacing: "0.05em",
+        fontWeight: 700,
+        transition: "color .5s ease"
       }}>
         LoL Advisor
       </h1>
 
-      <div style={{ display: "flex", gap: "8px", justifyContent: "center", marginBottom: "2rem" }}>
+      {/* Barre de recherche */}
+      <div style={{
+        display: "flex", gap: "8px", justifyContent: "center",
+        marginBottom: "2.5rem"
+      }}>
         <input
           placeholder="Pseudo"
           value={gameName}
           onChange={e => setGameName(e.target.value)}
           onKeyDown={e => e.key === "Enter" && search()}
           style={{
-            padding: "10px 16px", borderRadius: "6px",
-            border: `1px solid ${pageAccent}`,
-            background: "#0d1117", color: "#fff", fontSize: "16px", width: "200px",
-            transition: "border-color .5s ease"
+            padding: "12px 18px", borderRadius: "10px",
+            border: `1.5px solid ${pageAccent}`,
+            background: "#0d1117", color: "#fff",
+            fontSize: "15px", width: "210px",
+            outline: "none", transition: "border-color .5s ease"
           }}
         />
         <input
@@ -97,42 +109,54 @@ function App() {
           onChange={e => setTagLine(e.target.value)}
           onKeyDown={e => e.key === "Enter" && search()}
           style={{
-            padding: "10px 16px", borderRadius: "6px",
-            border: `1px solid ${pageAccent}`,
-            background: "#0d1117", color: "#fff", fontSize: "16px", width: "100px",
-            transition: "border-color .5s ease"
+            padding: "12px 18px", borderRadius: "10px",
+            border: `1.5px solid ${pageAccent}`,
+            background: "#0d1117", color: "#fff",
+            fontSize: "15px", width: "100px",
+            outline: "none", transition: "border-color .5s ease"
           }}
         />
         <button onClick={search} style={{
-          padding: "10px 24px", borderRadius: "6px", border: "none",
-          background: pageAccent, color: "#0a0e1a", fontWeight: "bold",
-          fontSize: "16px", cursor: "pointer", transition: "background .5s ease"
+          padding: "12px 28px", borderRadius: "10px", border: "none",
+          background: pageAccent, color: "#0a0e1a", fontWeight: 700,
+          fontSize: "15px", cursor: "pointer", transition: "background .5s ease",
+          letterSpacing: "0.03em"
         }}>
           Rechercher
         </button>
       </div>
 
-      {loading && <p style={{ textAlign: "center", color: pageAccent }}>Chargement...</p>}
-      {error && <p style={{ textAlign: "center", color: "#e84057" }}>{error}</p>}
+      {loading && (
+        <p style={{ textAlign: "center", color: pageAccent, fontSize: "15px" }}>
+          Chargement du profil...
+        </p>
+      )}
+      {error && (
+        <p style={{ textAlign: "center", color: "#f87171", fontSize: "14px" }}>{error}</p>
+      )}
 
       {player && (
-        <div style={{ maxWidth: "620px", margin: "0 auto" }}>
+        <div style={{ maxWidth: "660px", margin: "0 auto" }}>
 
-          {/* Tab bar */}
-          <div style={{ display: "flex", gap: "4px", marginBottom: "0" }}>
+          {/* Pills de navigation */}
+          <div style={{
+            display: "flex", gap: "8px", marginBottom: "16px",
+            justifyContent: "center", flexWrap: "wrap"
+          }}>
             {TABS.map(tab => (
               <button
                 key={tab.id}
                 onClick={() => switchTab(tab)}
                 style={{
-                  flex: 1, padding: "10px 6px",
-                  borderRadius: "8px 8px 0 0",
-                  border: `1px solid ${activeTab === tab.id ? pageAccent : "#2a2a2a"}`,
-                  borderBottom: activeTab === tab.id ? "none" : `1px solid ${pageAccent}`,
-                  background: activeTab === tab.id ? pageBg : "#0d1117",
-                  color: activeTab === tab.id ? pageAccent : "#5c6470",
-                  fontWeight: activeTab === tab.id ? 600 : 400,
-                  fontSize: "12px", cursor: "pointer", transition: "all .2s"
+                  padding: "8px 20px",
+                  borderRadius: "999px",
+                  border: `1.5px solid ${activeTab === tab.id ? pageAccent : "#2a2a3a"}`,
+                  background: activeTab === tab.id ? pageAccent : "transparent",
+                  color: activeTab === tab.id ? "#0a0e1a" : "#5c6470",
+                  fontWeight: activeTab === tab.id ? 700 : 400,
+                  fontSize: "13px", cursor: "pointer",
+                  transition: "all .2s ease",
+                  letterSpacing: "0.02em"
                 }}
               >
                 {tab.label}
@@ -140,16 +164,20 @@ function App() {
             ))}
           </div>
 
-          {/* Contenu */}
+          {/* Contenu de l'onglet actif */}
           <div style={{
-            border: `1px solid ${pageAccent}`,
-            borderRadius: "0 0 16px 16px",
+            background: "#0d1117",
+            borderRadius: "16px",
+            border: `1.5px solid ${pageAccent}`,
             overflow: "hidden"
           }}>
             {activeTab === "profile" && <PlayerCard player={player} embedded />}
             {activeTab !== "profile" && (
               loadingTab
-                ? <p style={{ textAlign: "center", padding: "2rem", color: pageAccent }}>
+                ? <p style={{
+                    textAlign: "center", padding: "3rem",
+                    color: pageAccent, fontSize: "14px"
+                  }}>
                     Chargement des 20 dernières parties... (3-4 sec)
                   </p>
                 : statsCache[activeTab]

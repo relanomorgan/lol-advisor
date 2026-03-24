@@ -21,6 +21,7 @@ type Player = {
   summoner_level: number;
   profile_icon_id: number;
   rank: RankInfo | null;
+  flex: RankInfo | null;
   top_champions: Champion[];
 };
 
@@ -56,6 +57,47 @@ function getMasteryProgress(points: number, level: number): number {
   return Math.min(100, Math.round(((points - prev) / (max - prev)) * 100));
 }
 
+function RankBadge({ rank, label, accent, badge, border }: {
+  rank: RankInfo;
+  label: string;
+  accent: string;
+  badge: string;
+  border: string;
+}) {
+  const ddVersion = "16.6.1";
+  return (
+    <div style={{
+      display: "flex", alignItems: "center", gap: "10px",
+      background: badge, borderRadius: "10px",
+      padding: "10px 14px", border: `1px solid ${border}`,
+      flex: 1
+    }}>
+      <img
+        src={`https://raw.communitydragon.org/latest/plugins/rcp-fe-lol-shared-components/global/default/${rank.tier.toLowerCase()}.png`}
+        alt={rank.tier}
+        style={{ width: "36px", height: "36px" }}
+        onError={(e) => (e.currentTarget.style.display = "none")}
+      />
+      <div>
+        <div style={{ fontSize: "10px", color: "#5c6470", textTransform: "uppercase",
+          letterSpacing: "0.08em", marginBottom: "2px" }}>{label}</div>
+        <div style={{ color: accent, fontWeight: 600, fontSize: "14px" }}>
+          {TIER_LABELS[rank.tier]} {rank.rank}
+          <span style={{ color: "#5c6470", fontWeight: 400, fontSize: "12px" }}> {rank.lp} LP</span>
+        </div>
+        <div style={{ fontSize: "12px", marginTop: "2px" }}>
+          <span style={{ color: "#4ade80" }}>{rank.wins}V</span>
+          {" "}<span style={{ color: "#f87171" }}>{rank.losses}D</span>
+          {" · "}
+          <span style={{ color: rank.winrate >= 50 ? "#4ade80" : "#f87171", fontWeight: 500 }}>
+            {rank.winrate}%
+          </span>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function PlayerCard({
   player,
   embedded = false
@@ -78,19 +120,19 @@ export default function PlayerCard({
 
       {/* Header profil */}
       <div style={{ display: "flex", alignItems: "center", gap: "16px", marginBottom: "1.5rem" }}>
-        <div style={{ position: "relative" }}>
+        <div style={{ position: "relative", flexShrink: 0 }}>
           <img
             src={`https://ddragon.leagueoflegends.com/cdn/${ddVersion}/img/profileicon/${player.profile_icon_id}.png`}
             alt="icon"
             style={{
-              width: "72px", height: "72px", borderRadius: "50%",
+              width: "76px", height: "76px", borderRadius: "50%",
               border: `3px solid ${theme.accent}`
             }}
           />
           <span style={{
-            position: "absolute", bottom: "-8px", left: "50%", transform: "translateX(-50%)",
+            position: "absolute", bottom: "-10px", left: "50%", transform: "translateX(-50%)",
             background: theme.badge, border: `1px solid ${theme.border}`,
-            borderRadius: "10px", padding: "1px 8px",
+            borderRadius: "10px", padding: "2px 8px",
             fontSize: "11px", fontWeight: 500, color: theme.accent, whiteSpace: "nowrap"
           }}>
             Niv. {player.summoner_level}
@@ -98,41 +140,29 @@ export default function PlayerCard({
         </div>
 
         <div>
-          <h2 style={{ margin: 0, color: theme.accent, fontSize: "20px" }}>
+          <h2 style={{ margin: "0 0 12px", color: theme.accent, fontSize: "22px" }}>
             {player.game_name}
-            <span style={{ color: "#5c6470", fontSize: "14px" }}>#{player.tag_line}</span>
+            <span style={{ color: "#5c6470", fontSize: "15px" }}>#{player.tag_line}</span>
           </h2>
-          {player.rank ? (
-            <div style={{ display: "flex", alignItems: "center", gap: "8px", marginTop: "6px" }}>
-              <img
-                src={`https://raw.communitydragon.org/latest/plugins/rcp-fe-lol-shared-components/global/default/${tier.toLowerCase()}.png`}
-                alt={tier}
-                style={{ width: "32px", height: "32px" }}
-                onError={(e) => (e.currentTarget.style.display = "none")}
-              />
-              <div>
-                <span style={{ color: theme.accent, fontWeight: 500 }}>
-                  {TIER_LABELS[tier]} {player.rank.rank}
-                </span>
-                <span style={{ color: "#5c6470", fontSize: "13px" }}> — {player.rank.lp} LP</span>
-                <div style={{ fontSize: "12px", color: "#5c6470", marginTop: "2px" }}>
-                  <span style={{ color: "#4ade80" }}>{player.rank.wins}V</span>
-                  {" "}<span style={{ color: "#f87171" }}>{player.rank.losses}D</span>
-                  {" "}· Winrate{" "}
-                  <span style={{
-                    color: player.rank.winrate >= 50 ? "#4ade80" : "#f87171",
-                    fontWeight: 500
-                  }}>
-                    {player.rank.winrate}%
-                  </span>
-                </div>
-              </div>
-            </div>
-          ) : (
-            <p style={{ color: "#5c6470", margin: "4px 0 0", fontSize: "13px" }}>Non classé</p>
-          )}
+
+          {/* Rangs côte à côte */}
+          <div style={{ display: "flex", gap: "10px", flexWrap: "wrap" }}>
+            {player.rank
+              ? <RankBadge rank={player.rank} label="Solo / Duo"
+                  accent={theme.accent} badge={theme.badge} border={theme.border} />
+              : <div style={{ fontSize: "13px", color: "#5c6470", padding: "8px 0" }}>Non classé (SoloQ)</div>
+            }
+            {player.flex
+              ? <RankBadge rank={player.flex} label="Flex"
+                  accent={theme.accent} badge={theme.badge} border={theme.border} />
+              : <div style={{ fontSize: "13px", color: "#5c6470", padding: "8px 0" }}>Non classé (Flex)</div>
+            }
+          </div>
         </div>
       </div>
+
+      {/* Séparateur */}
+      <div style={{ height: "1px", background: theme.border, margin: "1rem 0" }} />
 
       {/* Champions */}
       <h3 style={{
@@ -149,7 +179,7 @@ export default function PlayerCard({
             <div key={champ.id} style={{
               display: "flex", alignItems: "center", gap: "12px",
               background: theme.badge, borderRadius: "10px", padding: "10px 14px",
-              border: `0.5px solid ${theme.border}`
+              border: `1px solid ${theme.border}`
             }}>
               <span style={{ color: "#5c6470", fontSize: "12px", minWidth: "14px" }}>{i + 1}</span>
               <img
