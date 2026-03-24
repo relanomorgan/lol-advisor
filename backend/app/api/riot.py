@@ -1,3 +1,5 @@
+import asyncio
+import traceback
 from fastapi import APIRouter, HTTPException
 from app.services.riot import riot_service, get_champion_data
 
@@ -52,6 +54,100 @@ async def get_player(game_name: str, tag_line: str):
             "top_champions": top_champions
         }
     except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+async def compute_stats(puuid: str, match_ids: list, champion_map: dict) -> dict:
+    if not match_ids:
+        return {"total_games": 0, "champion_stats": []}
+
+    matches = await asyncio.gather(*[
+        riot_service.get_match(mid) for mid in match_ids
+    ])
+
+    champion_stats: dict = {}
+
+    for match in matches:
+        participants = match["info"]["participants"]
+        player = next((p for p in participants if p["puuid"] == puuid), None)
+        if not player:
+            continue
+
+        champ_id = player["championId"]
+        champ_name = champion_map.get(champ_id, {}).get("name", "Inconnu")
+        champ_image = champion_map.get(champ_id, {}).get("image", "")
+        won = player["win"]
+
+        if champ_id not in champion_stats:
+            champion_stats[champ_id] = {
+                "id": champ_id,
+                "name": champ_name,
+                "image": champ_image,
+                "wins": 0, "losses": 0,
+                "kills": 0, "deaths": 0, "assists": 0,
+                "games": 0
+            }
+
+        s = champion_stats[champ_id]
+        s["games"] += 1
+        s["kills"] += player["kills"]
+        s["deaths"] += player["deaths"]
+        s["assists"] += player["assists"]
+        if won:
+            s["wins"] += 1
+        else:
+            s["losses"] += 1
+
+    result = []
+    for s in champion_stats.values():
+        s["winrate"] = round(s["wins"] / s["games"] * 100)
+        s["kda"] = round((s["kills"] + s["assists"]) / max(1, s["deaths"]), 2)
+        result.append(s)
+
+    result.sort(key=lambda x: x["games"], reverse=True)
+
+    return {
+        "total_games": len(matches),
+        "champion_stats": result
+    }
+
+
+@router.get("/player/{game_name}/{tag_line}/stats/soloq")
+async def get_stats_soloq(game_name: str, tag_line: str):
+    try:
+        champion_map = await get_champion_data()
+        puuid_data = await riot_service.get_puuid(game_name, tag_line)
+        puuid = puuid_data["puuid"]
+        match_ids = await riot_service.get_match_ids(puuid, queue=420, count=20)
+        return await compute_stats(puuid, match_ids, champion_map)
+    except Exception as e:
+        print(">>> SOLOQ ERROR:", traceback.format_exc())
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.get("/player/{game_name}/{tag_line}/stats/flex")
+async def get_stats_flex(game_name: str, tag_line: str):
+    try:
+        champion_map = await get_champion_data()
+        puuid_data = await riot_service.get_puuid(game_name, tag_line)
+        puuid = puuid_data["puuid"]
+        match_ids = await riot_service.get_match_ids(puuid, queue=440, count=20)
+        return await compute_stats(puuid, match_ids, champion_map)
+    except Exception as e:
+        print(">>> FLEX ERROR:", traceback.format_exc())
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.get("/player/{game_name}/{tag_line}/stats/normal")
+async def get_stats_normal(game_name: str, tag_line: str):
+    try:
+        champion_map = await get_champion_data()
+        puuid_data = await riot_service.get_puuid(game_name, tag_line)
+        puuid = puuid_data["puuid"]
+        match_ids = await riot_service.get_match_ids(puuid, queue=None, count=20)
+        return await compute_stats(puuid, match_ids, champion_map)
+    except Exception as e:
+        print(">>> NORMAL ERROR:", traceback.format_exc())
         raise HTTPException(status_code=500, detail=str(e))
 
 

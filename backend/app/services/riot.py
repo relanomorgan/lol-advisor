@@ -39,6 +39,21 @@ class RiotService:
             response.raise_for_status()
             return response.json()
 
+    async def get_match_ids(self, puuid: str, queue: int | None = 420, count: int = 20) -> list:
+        base = f"https://{self.regional}/lol/match/v5/matches/by-puuid/{puuid}/ids?count={count}"
+        url = f"{base}&queue={queue}" if queue else base
+        async with httpx.AsyncClient() as client:
+            response = await client.get(url, headers=self.headers)
+            response.raise_for_status()
+            return response.json()
+
+    async def get_match(self, match_id: str) -> dict:
+        url = f"https://{self.regional}/lol/match/v5/matches/{match_id}"
+        async with httpx.AsyncClient() as client:
+            response = await client.get(url, headers=self.headers)
+            response.raise_for_status()
+            return response.json()
+
     async def get_live_game(self, puuid: str) -> dict | None:
         url = f"https://{self.platform}/lol/spectator/v5/active-games/by-summoner/{puuid}"
         async with httpx.AsyncClient() as client:

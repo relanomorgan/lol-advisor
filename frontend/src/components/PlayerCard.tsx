@@ -24,7 +24,7 @@ type Player = {
   top_champions: Champion[];
 };
 
-const TIER_THEMES: Record<string, { bg: string; accent: string; border: string; badge: string }> = {
+export const TIER_THEMES: Record<string, { bg: string; accent: string; border: string; badge: string }> = {
   IRON:        { bg: "#0d0d0d", accent: "#8a8a8a", border: "#4a4a4a", badge: "#2a2a2a" },
   BRONZE:      { bg: "#1a0f0a", accent: "#cd7f32", border: "#8b4513", badge: "#2d1a0e" },
   SILVER:      { bg: "#0f1117", accent: "#c0c0c0", border: "#708090", badge: "#1e2430" },
@@ -56,17 +56,24 @@ function getMasteryProgress(points: number, level: number): number {
   return Math.min(100, Math.round(((points - prev) / (max - prev)) * 100));
 }
 
-export default function PlayerCard({ player }: { player: Player }) {
+export default function PlayerCard({
+  player,
+  embedded = false
+}: {
+  player: Player;
+  embedded?: boolean;
+}) {
   const tier = player.rank?.tier || "UNRANKED";
   const theme = TIER_THEMES[tier] || DEFAULT_THEME;
   const ddVersion = "16.6.1";
 
   return (
     <div style={{
-      maxWidth: "620px", margin: "0 auto",
-      background: theme.bg, borderRadius: "16px",
-      border: `1px solid ${theme.border}`,
-      padding: "1.5rem", transition: "all .3s ease"
+      background: theme.bg,
+      borderRadius: embedded ? "0" : "16px",
+      border: embedded ? "none" : `1px solid ${theme.border}`,
+      padding: "1.5rem",
+      transition: "all .3s ease"
     }}>
 
       {/* Header profil */}
@@ -75,7 +82,10 @@ export default function PlayerCard({ player }: { player: Player }) {
           <img
             src={`https://ddragon.leagueoflegends.com/cdn/${ddVersion}/img/profileicon/${player.profile_icon_id}.png`}
             alt="icon"
-            style={{ width: "72px", height: "72px", borderRadius: "50%", border: `3px solid ${theme.accent}` }}
+            style={{
+              width: "72px", height: "72px", borderRadius: "50%",
+              border: `3px solid ${theme.accent}`
+            }}
           />
           <span style={{
             position: "absolute", bottom: "-8px", left: "50%", transform: "translateX(-50%)",
@@ -86,6 +96,7 @@ export default function PlayerCard({ player }: { player: Player }) {
             Niv. {player.summoner_level}
           </span>
         </div>
+
         <div>
           <h2 style={{ margin: 0, color: theme.accent, fontSize: "20px" }}>
             {player.game_name}
@@ -108,7 +119,10 @@ export default function PlayerCard({ player }: { player: Player }) {
                   <span style={{ color: "#4ade80" }}>{player.rank.wins}V</span>
                   {" "}<span style={{ color: "#f87171" }}>{player.rank.losses}D</span>
                   {" "}· Winrate{" "}
-                  <span style={{ color: player.rank.winrate >= 50 ? "#4ade80" : "#f87171", fontWeight: 500 }}>
+                  <span style={{
+                    color: player.rank.winrate >= 50 ? "#4ade80" : "#f87171",
+                    fontWeight: 500
+                  }}>
                     {player.rank.winrate}%
                   </span>
                 </div>
@@ -138,10 +152,14 @@ export default function PlayerCard({ player }: { player: Player }) {
               border: `0.5px solid ${theme.border}`
             }}>
               <span style={{ color: "#5c6470", fontSize: "12px", minWidth: "14px" }}>{i + 1}</span>
-              <img src={champ.image} alt={champ.name} style={{
-                width: "44px", height: "44px", borderRadius: "6px",
-                border: `2px solid ${theme.accent}`
-              }} />
+              <img
+                src={champ.image}
+                alt={champ.name}
+                style={{
+                  width: "44px", height: "44px", borderRadius: "6px",
+                  border: `2px solid ${theme.accent}`
+                }}
+              />
               <div style={{ flex: 1 }}>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                   <span style={{ fontWeight: 500, color: theme.accent }}>{champ.name}</span>
@@ -149,7 +167,6 @@ export default function PlayerCard({ player }: { player: Player }) {
                     Niv. {champ.level} · {champ.points.toLocaleString("fr-FR")} pts
                   </span>
                 </div>
-                {/* Barre de progression maîtrise */}
                 <div style={{
                   marginTop: "6px", height: "4px", borderRadius: "2px",
                   background: theme.border, overflow: "hidden"
