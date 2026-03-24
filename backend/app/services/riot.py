@@ -48,5 +48,22 @@ class RiotService:
             response.raise_for_status()
             return response.json()
 
+async def get_champion_data() -> dict:
+    url = "https://ddragon.leagueoflegends.com/api/versions.json"
+    async with httpx.AsyncClient() as client:
+        versions = await client.get(url)
+        latest = versions.json()[0]
+        champions = await client.get(
+            f"https://ddragon.leagueoflegends.com/cdn/{latest}/data/fr_FR/champion.json"
+        )
+        data = champions.json()["data"]
+        return {
+            int(v["key"]): {
+                "name": v["name"],
+                "id": k,
+                "image": f"https://ddragon.leagueoflegends.com/cdn/{latest}/img/champion/{k}.jpg"
+            }
+            for k, v in data.items()
+        }
 
 riot_service = RiotService()
