@@ -61,7 +61,7 @@ async def get_champion_data() -> dict:
             int(v["key"]): {
                 "name": v["name"],
                 "id": k,
-                "image": f"https://ddragon.leagueoflegends.com/cdn/{latest}/img/champion/{k}.jpg"
+                "image": f"https://ddragon.leagueoflegends.com/cdn/{latest}/img/champion/{k}.png"
             }
             for k, v in data.items()
         }
