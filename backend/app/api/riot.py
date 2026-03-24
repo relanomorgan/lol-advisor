@@ -14,6 +14,23 @@ async def get_player(game_name: str, tag_line: str):
 
         summoner = await riot_service.get_summoner(puuid)
         masteries = await riot_service.get_champion_mastery(puuid)
+        ranked_data = await riot_service.get_ranked_info(puuid)
+
+        soloq = next(
+            (r for r in ranked_data if r["queueType"] == "RANKED_SOLO_5x5"),
+            None
+        )
+
+        rank_info = None
+        if soloq:
+            rank_info = {
+                "tier": soloq["tier"],
+                "rank": soloq["rank"],
+                "lp": soloq["leaguePoints"],
+                "wins": soloq["wins"],
+                "losses": soloq["losses"],
+                "winrate": round(soloq["wins"] / (soloq["wins"] + soloq["losses"]) * 100)
+            }
 
         top_champions = []
         for m in masteries:
@@ -30,6 +47,8 @@ async def get_player(game_name: str, tag_line: str):
             "game_name": puuid_data["gameName"],
             "tag_line": puuid_data["tagLine"],
             "summoner_level": summoner["summonerLevel"],
+            "profile_icon_id": summoner["profileIconId"],
+            "rank": rank_info,
             "top_champions": top_champions
         }
     except Exception as e:

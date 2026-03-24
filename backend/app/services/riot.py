@@ -32,6 +32,13 @@ class RiotService:
             response.raise_for_status()
             return response.json()
 
+    async def get_ranked_info(self, puuid: str) -> list:
+        url = f"https://{self.platform}/lol/league/v4/entries/by-puuid/{puuid}"
+        async with httpx.AsyncClient() as client:
+            response = await client.get(url, headers=self.headers)
+            response.raise_for_status()
+            return response.json()
+
     async def get_live_game(self, puuid: str) -> dict | None:
         url = f"https://{self.platform}/lol/spectator/v5/active-games/by-summoner/{puuid}"
         async with httpx.AsyncClient() as client:
@@ -47,6 +54,7 @@ class RiotService:
             response = await client.get(url, headers=self.headers)
             response.raise_for_status()
             return response.json()
+
 
 async def get_champion_data() -> dict:
     url = "https://ddragon.leagueoflegends.com/api/versions.json"
@@ -65,5 +73,6 @@ async def get_champion_data() -> dict:
             }
             for k, v in data.items()
         }
+
 
 riot_service = RiotService()
